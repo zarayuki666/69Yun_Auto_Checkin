@@ -2,12 +2,15 @@ name: Checkin
 
 on:
   schedule:
-    - cron: '26 19 * * *'  # 每天 UTC 时间 20:00 执行（北京时间 04:00）
+    - cron: '26 23 * * *'  # 每天 UTC 时间 19:26 执行（北京时间 07:26）
   workflow_dispatch:  # 允许手动触发
 
 jobs:
   checkin:
     runs-on: ubuntu-latest
+    # 必须添加写入权限，否则 GitHub Actions 无法将更新后的时间文件推送到仓库
+    permissions:
+      contents: write
 
     steps:
       - name: 📥 检出代码
@@ -29,6 +32,21 @@ jobs:
           USER1: ${{ secrets.USER1 }}
           PASS1: ${{ secrets.PASS1 }}
         run: python checkin.py
+
+      - name: 📝 更新时间文件并提交
+        run: |
+          # 获取当前时间并写入 time.txt 文件（包含 UTC 和 北京时间）
+          echo "Last Run: $(date -u '+%Y-%m-%d %H:%M:%S UTC') | Beijing Time: $(date -d '+8 hours' -u '+%Y-%m-%d %H:%M:%S')" > time.txt
+          
+          # 配置 Git 身份为 GitHub Actions 官方机器人
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # 添加文件、提交并推送
+          git add time.txt
+          # 使用 || exit 0 防止在没有任何更改时提交导致工作流报错终止
+          git commit -m "Auto update: refresh time.txt" || exit 0
+          git push
 
       - name: 📌 执行完成
         run: echo "签到任务已完成 ✅"
