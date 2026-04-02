@@ -2,7 +2,7 @@ name: Checkin
 
 on:
   schedule:
-    - cron: '0 20 * * *'  # 每天 UTC 时间 20:00 执行（北京时间 04:00）
+    - cron: '26 19 * * *'  # 每天 UTC 时间 20:00 执行（北京时间 04:00）
   workflow_dispatch:  # 允许手动触发
 
 jobs:
